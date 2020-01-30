@@ -14,15 +14,19 @@ void producer(int max) {
 
 	while (!end) {
 		for (int i = 0; i < max; i++) {
+			lock_guard<mutex> lock(m_mutex);
+			//m_mutex.lock();
 			cout << "burger ready" << endl;
 
 			m_queue.push(i); // push burger to queue
 
 			m_cv.notify_all();
 
-			this_thread::sleep_for(chrono::seconds(2)); // waiting 
+			//this_thread::sleep_for(chrono::seconds(rand() % 2)); // waiting 
+			//m_mutex.unlock(); 
 		}
 		end = true;
+		cout << "end of cooking" << endl;
 	}
 }
 
@@ -31,31 +35,31 @@ void consumer(int max) {
 	int i = max;
 
 	while (!end) {
-		while (i <= 0) {
-			if (!m_queue.empty()) {
-				cout << "people are hungry" << endl;
-			}
-			else {
-
-				std::lock_guard<std::mutex> lock(mutex);
+		while (i > 0) {
+				lock_guard<mutex> lock(m_mutex);
 
 				cout << "burger sold" << endl;
 
 				m_queue.pop(); // sell burger
 
+				//this_thread::sleep_for(chrono::seconds(rand() % 5)); // waiting
+
 				i--;
-			}
+			
 		}
 		end = true;
+		cout << "end of selling" << endl;
 	}
 }
 
 int main() {
-
-	thread producer(producer,20);
-	thread consumer(consumer,20);
+	//srand((unsigned)time(NULL));
+	thread producer(producer,10);
+	thread consumer(consumer,10);
 	producer.join();
 	consumer.join();
-	cin.get();
+
+	cout << "close" << endl;
+
 	return 1;
 }
